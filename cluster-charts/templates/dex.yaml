@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: dex
+  namespace: argocd
+spec:
+  destination:
+    namespace: dex-auth
+    server: {{ .Values.spec.destination.server }}
+  project: hit-asgard
+  source:
+    helm:
+      values: |-
+        # grpc support
+        grpc: false
+        # https termination by dex itself
+        https: true
+        # expose prometheus metrics ?
+        telemetry: true
+        ports:
+          web:
+            containerPort: 5556
+            servicePort: 5556
+          telemetry:
+            containerPort: 5558
+            servicePort: 5558
+    path: dex
+    repoURL: {{ .Values.spec.source.repoURL }}
+    targetRevision: {{ .Values.spec.source.targetRevision }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+
+
