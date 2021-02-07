@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kube-elasticsearch
+  namespace: argocd
+spec:
+  destination:
+    namespace: kube-elastic-stack
+    server: {{ .Values.spec.destination.server }}
+  project: hit-asgard
+  source:
+    chart: elasticsearch
+    helm:
+      values: |-
+        volumeClaimTemplate:
+          storageClassName: px-replicated
+          accessModes: [ "ReadWriteOnce" ]
+          resources:
+            requests:
+              storage: 30Gi
+    repoURL: https://helm.elastic.co
+    targetRevision: {{ .Values.elastic.targetRevision }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true

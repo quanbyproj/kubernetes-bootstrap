@@ -1,0 +1,6 @@
+resources:
+- dex-namespace.yaml
+- dex-configmap.yaml
+- dex-deployment.yaml
+- dex-service.yaml
+- dex-ingress.yaml

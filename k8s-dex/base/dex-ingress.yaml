@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: dex
+  namespace: auth-system
+  annotations:
+    nginx.ingress.kubernetes.io/force-ssl-redirect: true
+    nginx.ingress.kubernetes.io/ssl-passthrough: true
+spec:
+  rules:
+  - host: dex.k8s-test4.alfa.local
+    http:
+      paths:
+      - backend:
+          serviceName: dex
+          servicePort: 5556

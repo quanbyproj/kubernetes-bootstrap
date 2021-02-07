@@ -1,0 +1,14 @@
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: nginx
+  hostPath: /
+  hostRepo: nexus.k8s.lan.quanby.nl
+  tls:
+    - hosts:
+        - nexus.k8s.lan.quanby.nl
+
+persistence:
+  enabled: true
+  storageClass: "px-replicated"
+

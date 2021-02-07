@@ -1,0 +1,7 @@
+resources:
+- base/dex-namespace.yaml
+- base/dex-rbac.yaml
+- base/dex-configmap.yaml
+- base/dex-deployment.yaml
+- base/dex-service.yaml
+- base/dex-ingress.yaml

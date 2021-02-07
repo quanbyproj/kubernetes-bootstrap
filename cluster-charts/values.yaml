@@ -1,0 +1,9 @@
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+  source:
+    repoURL: git@github.com:quanbyproj/kubernetes-bootstrap.git
+    targetRevision: HEAD
+
+elastic:
+  targetRevision: 7.10.2

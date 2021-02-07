@@ -1,0 +1,42 @@
+---
+kind: StorageCluster
+apiVersion: core.libopenstorage.org/v1
+metadata:
+  name: px-cluster-9bc65567-94f7-4f07-bf9b-d5bb5e947e1c
+  namespace: kube-system
+spec:
+  autopilot:
+    enabled: true
+    providers:
+    - name: default
+      params:
+        url: http://prometheus:9090
+      type: prometheus
+  deleteStrategy:
+    type: Uninstall
+  image: portworx/oci-monitor:2.6.3
+  imagePullPolicy: Always
+  customImageRegistry: ""
+  kvdb:
+    internal: true
+  storage:
+    forceUseDisks: true
+    journalDevice: auto
+    useAllWithPartitions: true
+  secretsProvider: k8s
+  stork:
+    args:
+      webhook-controller: "false"
+    enabled: true
+  userInterface:
+    enabled: false
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: px-essential
+  namespace: kube-system
+data:
+  px-essen-user-id: M2E1Y2I4MjAtMzZkOC0xMWViLWEyYzUtYzI0ZTQ5OWM3NDY3
+  px-osb-endpoint: aHR0cHM6Ly9weGVzc2VudGlhbHMucG9ydHdvcnguY29tL29zYi9iaWxsaW5nL3YxL3JlZ2lzdGVy
+---

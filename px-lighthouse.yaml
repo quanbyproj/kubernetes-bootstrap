@@ -1,0 +1,23 @@
+apiVersion: v1
+items:
+- apiVersion: extensions/v1beta1
+  kind: Ingress
+  metadata:
+    annotations:
+      nginx.ingress.kubernetes.io/rewrite-target: /
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    name: portworx
+  spec:
+    rules:
+    - host: lighthouse.lan.quanby.nl
+      http:
+        paths:
+        - backend:
+            serviceName: px-lighthouse
+            servicePort: 80
+          path: /
+          pathType: ImplementationSpecific
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""

@@ -1,0 +1,20 @@
+{{- if .Values.persistence.volumeConfiguration -}}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ template "iqserver.fullname" . }}-data
+  labels:
+    {{- include "iqserver.labels" . | nindent 4 }}
+    {{- if .Values.iq.extraLabels }}
+      {{- with .Values.iq.extraLabels }}
+        {{ toYaml . | indent 4 }}
+      {{- end }}
+    {{- end }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.accessMode }}
+  capacity:
+    storage: {{ .Values.persistence.storageSize }}
+  persistentVolumeReclaimPolicy: Recycle
+{{ toYaml .Values.persistence.volumeConfiguration | indent 2 }}
+{{- end }}

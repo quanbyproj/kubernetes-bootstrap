@@ -1,0 +1,31 @@
+kind: StorageCluster
+apiVersion: core.libopenstorage.org/v1
+metadata:
+  name: px-cluster-0cac7392-ed24-4c24-95a6-3e6185066a52
+  namespace: kube-system
+spec:
+  image: portworx/oci-monitor:2.6.1.6
+  imagePullPolicy: Always
+  deleteStrategy:
+    type: UninstallAndWipe  
+  kvdb:
+    internal: true
+  storage:
+    devices:
+    - /dev/vdb
+  secretsProvider: k8s
+  stork:
+    enabled: true
+    args:
+      webhook-controller: "false"
+  autopilot:
+    enabled: true
+    providers:
+    - name: default
+      type: prometheus
+      params:
+        url: http://prometheus:9090
+  monitoring:
+    prometheus:
+      enabled: true
+      exportMetrics: true
