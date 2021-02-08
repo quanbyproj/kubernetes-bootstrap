@@ -7,4 +7,4 @@ spec:
     targetRevision: main
 
 elastic:
-  targetRevision: 7.8.0
+  targetRevision: 7.8.1
