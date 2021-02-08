@@ -10,8 +10,22 @@ spec:
   project: default
   source:
     helm:
-      valueFiles:
-      - values-quanby.yaml
+      values: |-
+        ingress:
+          enabled: true
+          annotations:
+            nginx.ingress.kubernetes.io/rewrite-target: "/"
+          hosts:
+          - host: hello-world.{{ .Values.spec.clustername }}
+            paths:
+            - path: "/test"
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
     path: hello-world
     repoURL: {{ .Values.spec.source.repoURL }}
     targetRevision: {{ .Values.spec.source.targetRevision }}

@@ -1,4 +1,5 @@
 spec:
+  clustername: k8s.lab.quanby.nl
   destination:
     server: https://kubernetes.default.svc
   source:
