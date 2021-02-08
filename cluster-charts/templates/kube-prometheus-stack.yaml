@@ -7,7 +7,7 @@ spec:
   destination:
     namespace: kube-prometheus-stack
     server: {{ .Values.spec.destination.server }}
-  project: default
+  project: asgard
   source:
     path: kube-prometheus-stack
     repoURL: {{ .Values.spec.source.repoURL }}
