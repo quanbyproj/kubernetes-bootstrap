@@ -7,7 +7,7 @@ spec:
   destination:
     namespace: dex-auth
     server: {{ .Values.spec.destination.server }}
-  project: hit-asgard
+  project: asgard
   source:
     helm:
       values: |-

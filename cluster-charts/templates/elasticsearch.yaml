@@ -7,7 +7,7 @@ spec:
   destination:
     namespace: kube-elastic-stack
     server: {{ .Values.spec.destination.server }}
-  project: hit-asgard
+  project: asgard
   source:
     chart: elasticsearch
     helm:

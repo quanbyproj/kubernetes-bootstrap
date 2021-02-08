@@ -1,13 +1,13 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: kube-filebeat
+  name: filebeat
   namespace: argocd
 spec:
   destination:
     namespace: kube-elastic-stack
     server: {{ .Values.spec.destination.server }}
-  project: hit-asgard
+  project: asgard
   source:
     chart: filebeat
     repoURL: https://helm.elastic.co
