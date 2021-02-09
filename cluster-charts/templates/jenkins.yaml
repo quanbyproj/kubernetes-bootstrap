@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: jenkins
+  namespace: argocd
+spec:
+  destination:
+    namespace: jenkins
+    server: {{ .Values.spec.destination.server }}
+  project: asgard
+  source:
+    chart: jenkins
+    helm:
+      values: |-
+        persistence:
+          enabled: true
+          storageClass: px-db
+        controller:
+         ingress:
+            enabled: true
+            apiVersion: "extensions/v1"
+            hostName: jenkins.{{ .Values.spec.clustername }}
+    repoURL: https://charts.jenkins.io
+    targetRevision: 3.1.8
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true

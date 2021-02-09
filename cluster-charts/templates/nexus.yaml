@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nexus
+  namespace: argocd
+spec:
+  destination:
+    namespace: nexus
+    server: https://kubernetes.default.svc
+  project: asgard
+  source:
+    chart: sonatype-nexus
+    helm:
+      values: |-
+        persistence:
+          enabled: true
+          accessMode: ReadWriteOnce
+          storageClass:
+                px-db
+        ingress:
+          enabled: true
+          annotations:
+            kubernetes.io/ingress.class: nginx
+          tls:
+            enabled: false
+    repoURL: https://oteemo.github.io/charts
+    targetRevision: 4.2.0
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
