@@ -10,5 +10,5 @@ ingress:
 
 persistence:
   enabled: true
-  storageClass: "px-replicated"
+  storageClass: "px-db"
 

@@ -15,8 +15,7 @@ spec:
         persistence:
           enabled: true
           accessMode: ReadWriteOnce
-          storageClass:
-                px-db
+          storageClass: px-db
         ingress:
           enabled: true
           annotations:

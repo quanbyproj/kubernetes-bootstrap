@@ -13,7 +13,7 @@ spec:
     helm:
       values: |-
         volumeClaimTemplate:
-          storageClassName: px-replicated
+          storageClassName: px-db
           accessModes: [ "ReadWriteOnce" ]
           resources:
             requests:
