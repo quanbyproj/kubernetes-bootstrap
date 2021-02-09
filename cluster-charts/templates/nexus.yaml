@@ -6,7 +6,7 @@ metadata:
 spec:
   destination:
     namespace: nexus
-    server: https://kubernetes.default.svc
+    server: {{ .Values.spec.destination.server }}
   project: asgard
   source:
     chart: sonatype-nexus
@@ -20,6 +20,7 @@ spec:
           enabled: true
           annotations:
             kubernetes.io/ingress.class: nginx
+          hostName: nexus.{{ .Values.spec.clustername }}
           tls:
             enabled: false
     repoURL: https://oteemo.github.io/charts

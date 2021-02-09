@@ -14,10 +14,13 @@ spec:
       values: |-
         persistence:
           enabled: true
+          accessMode: ReadWriteOnce
           storageClass: px-db
         controller:
-         ingress:
+          ingress:
             enabled: true
+            annotations:
+              kubernetes.io/ingress.class: nginx
             apiVersion: "extensions/v1"
             hostName: jenkins.{{ .Values.spec.clustername }}
     repoURL: https://charts.jenkins.io
