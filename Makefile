@@ -14,7 +14,7 @@ proxy-argocd-ui:
 
 install-argocd:
 	kubectl create namespace argocd || true
-	kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v1.8.3/manifests/install.yaml
+	kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 	kubectl create -n argocd -f resources/application-bootstrap.yaml
 
 install-argocd-ingress:

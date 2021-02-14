@@ -24,7 +24,7 @@ spec:
             apiVersion: "extensions/v1"
             hostName: jenkins.{{ .Values.spec.clustername }}
     repoURL: https://charts.jenkins.io
-    targetRevision: 3.1.8
+    targetRevision: 3.1.9
   syncPolicy:
     automated:
       prune: true
