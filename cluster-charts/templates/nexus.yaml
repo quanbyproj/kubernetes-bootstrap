@@ -16,13 +16,6 @@ spec:
           enabled: true
           accessMode: ReadWriteOnce
           storageClass: px-db
-        ingress:
-          enabled: true
-          annotations:
-            kubernetes.io/ingress.class: nginx
-          hostName: nexus.{{ .Values.spec.clustername }}
-          tls:
-            enabled: false
     repoURL: https://oteemo.github.io/charts
     targetRevision: 4.2.0
   syncPolicy:
