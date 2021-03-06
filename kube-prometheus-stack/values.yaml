@@ -602,7 +602,7 @@ grafana:
     ##
     # hosts: []
     hosts:
-      - grafana.k8s.lan.quanby.nl
+      - grafana.k8s-dev-01.quanby.lan
 
     ## Path for grafana ingress
     path: /
@@ -1592,7 +1592,7 @@ prometheus:
     # hosts:
     #   - prometheus.domain.com
     hosts:
-      - prometheus.k8s.lan.quanby.nl
+      - prometheus.k8s-dev-01.quanby.lan
 
     ## Paths to use for ingress rules - one path should match the prometheusSpec.routePrefix
     ##

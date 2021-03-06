@@ -3,10 +3,10 @@ ingress:
   annotations:
     kubernetes.io/ingress.class: nginx
   hostPath: /
-  hostRepo: nexus.k8s.lan.quanby.nl
+  hostRepo: nexus.k8s-dev-01.quanby.lan
   tls:
     - hosts:
-        - nexus.k8s.lan.quanby.nl
+        - nexus.k8s-dev-01.quanby.lan
 
 persistence:
   enabled: true
