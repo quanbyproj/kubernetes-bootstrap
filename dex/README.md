@@ -1,10 +1,10 @@
 # Helm Chart for deploying dex
 
-This chart installs `dex` in a Kubernetes cluster. You can use this deployment for one cluster
+This chart installs `dex` in a Kubernetes cluster. You can use this deployment for one cluster 
 or for any number of cluster you configure under `staticClients` in the configuration.
 
 You also need to configure each Kubernetes cluster to use `dex` by [setting the OIDC parameters
-for the Kubernetes API server](https://kubernetes.io/docs/admin/authentication/#openid-connect-tokens).
+for the Kubernetes API server](https://kubernetes.io/docs/admin/authentication/#openid-connect-tokens). 
 This is easy using [`kube-aws` installer](https://github.com/kubernetes-incubator/kube-aws/tree/master/contrib/dex).
 
 If you want an easy way to issue and install `kubectl` credentials, then you should also
@@ -49,7 +49,7 @@ tls:
   #   -----BEGIN RSA PRIVATE KEY-----
   #   ...
   #   -----END RSA PRIVATE KEY-----
-
+ 
 ingress:
   enabled: false
   annotations: {}
@@ -57,11 +57,11 @@ ingress:
     # kubernetes.io/tls-acme: "true"
   path: /
   hosts:
-    - dex.lan.quanby.nl
+    - dex.example.com
   tls: []
-  #  - secretName: dex.lan.quanby.nl
+  #  - secretName: dex.example.com
   #    hosts:
-  #      - dex.lan.quanby.nl
+  #      - dex.example.com
 
 rbac:
   # Specifies whether RBAC resources should be created
@@ -97,7 +97,7 @@ affinity: {}
 # Certainly secret fields can use environment variables
 #
 config: |-
-  issuer: https://dex.lan.quanby.nl
+  issuer: https://dex.example.com
 
   storage:
     type: kubernetes
@@ -119,13 +119,13 @@ config: |-
   frontend:
     theme: "coreos"
     issuer: "Example Co"
-    issuerUrl: "https://lan.quanby.nl"
-    logoUrl: https://lan.quanby.nl/images/logo-250x25.png
+    issuerUrl: "https://example.com"
+    logoUrl: https://example.com/images/logo-250x25.png
 
   expiry:
     signingKeys: "6h"
     idTokens: "24h"
-
+  
   logger:
     level: debug
     format: json
@@ -146,7 +146,7 @@ config: |-
     config:
       clientID: $GITHUB_CLIENT_ID
       clientSecret: $GITHUB_CLIENT_SECRET
-      redirectURI: https://dex.lan.quanby.nl/callback
+      redirectURI: https://dex.example.com/callback
       # 'orgs' can be used to map groups from Github
       # https://github.com/coreos/dex/blob/master/Documentation/connectors/github.md
       #orgs:
@@ -165,13 +165,13 @@ config: |-
       issuer: https://accounts.google.com
       clientID: $GOOGLE_CLIENT_ID
       clientSecret: $GOOGLE_CLIENT_SECRET
-      redirectURI: https://dex.lan.quanby.nl/callback
+      redirectURI: https://dex.example.com/callback
       # Google supports whitelisting allowed domains when using G Suite
       # (Google Apps). The following field can be set to a list of domains
       # that can log in:
       # hostedDomains:
-      #  - lan.quanby.nl
-      #  - other.lan.quanby.nl
+      #  - example.com
+      #  - other.example.com
 
   # Microsoft App Dev account, 'Add an app'
   # 'Application Secrets' -> 'Generate new password'
@@ -183,7 +183,7 @@ config: |-
     config:
       clientID: $MICROSOFT_APPLICATION_ID
       clientSecret: $MICROSOFT_CLIENT_SECRET
-      redirectURI: https://dex.lan.quanby.nl/callback
+      redirectURI: https://dex.example.com/callback
       # Restrict access to one tenant
       # tenant: <tenant name> or <tenant uuid>
       # Restrict access to certain groups
@@ -197,7 +197,7 @@ config: |-
     id: ldap
     name: "LDAP"
     config:
-      host: ldap.lan.quanby.nl:389
+      host: ldap.example.com:389
       startTLS: true
       bindDN: "cn=serviceAccount,dc=example,dc=com"
       bindPW: $LDAP_BINDPW
@@ -226,11 +226,11 @@ config: |-
     name: "my-cluster"
     secret: "pUBnBOY80SnXgjibTYM9ZWNzY2xreNGQok"
     redirectURIs:
-    - https://login.lan.quanby.nl/callback/my-cluster
-
+    - https://login.example.com/callback/my-cluster
+  
   enablePasswordDB: True
   staticPasswords:
-  - email: "admin@lan.quanby.nl"
+  - email: "admin@example.com"
     # bcrypt hash of the string "password"
     hash: "$2a$10$2b2cU8CPhOTaGrs1HRQuAueS7JTT5ZHsHSzYiFPm1leZck7Mc8T4W"
     username: "admin"
