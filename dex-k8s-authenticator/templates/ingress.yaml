@@ -1,5 +1,5 @@
 {{- if .Values.ingress.enabled -}}
-{{- $fullName := include "dex.fullname" . -}}
+{{- $fullName := include "dex-k8s-authenticator.fullname" . -}}
 {{- $servicePort := .Values.service.port -}}
 {{- $ingressPath := .Values.ingress.path -}}
 apiVersion: extensions/v1beta1
@@ -7,9 +7,9 @@ kind: Ingress
 metadata:
   name: {{ $fullName }}
   labels:
-    app: {{ template "dex.name" . }}
+    app: {{ template "dex-k8s-authenticator.name" . }}
     env: {{ default "dev" .Values.global.deployEnv }}
-    chart: {{ template "dex.chart" . }}
+    chart: {{ template "dex-k8s-authenticator.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 {{- with .Values.ingress.annotations }}
@@ -22,7 +22,7 @@ spec:
   {{- range .Values.ingress.tls }}
   - hosts:
     {{- range .hosts }}
-      - {{ . }}
+    - {{ . }}
     {{- end }}
     secretName: {{ .secretName }}
   {{- end }}

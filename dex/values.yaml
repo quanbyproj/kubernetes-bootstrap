@@ -1,104 +1,43 @@
 # Default values for dex
-# This is a YAML-formatted file.
-# Declare name/value pairs to be passed into your templates.
-# name: value
 
-image: quay.io/dexidp/dex
-imageTag: "v2.24.0"
-imagePullPolicy: "IfNotPresent"
-imagePullSecrets: {}
+# Deploy environment label, e.g. dev, test, prod
+global:
+  deployEnv: dev
 
-inMiniKube: false
+replicaCount: 1
 
-nodeSelector: {}
-
-podLabels: {}
-
-podAnnotations: {}
-
-priorityClassName: ""
-
-initContainers: []
-
-tolerations: []
-  # - key: CriticalAddonsOnly
-  #   operator: Exists
-  # - key: foo
-  #   operator: Equal
-  #   value: bar
-  #   effect: NoSchedule
-
-securityContext:
-  # Rejecting containers trying to run with root privileges
-  # runAsNonRoot: true
-  # Preventing privilege escalation to root privileges
-  # allowPrivilegeEscalation: false
-  # Set the user ID used to run the container
-  # runAsUser: 1001
-  # Set the primary group ID used to run all processes within any container of the pod
-  # runAsGroup: 1001
-  # Set the group ID associated with the container
-  # fsGroup: 1001
-
-replicas: 1
-
-# resources:
-  # limits:
-    # cpu: 100m
-    # memory: 50Mi
-  # requests:
-    # cpu: 100m
-    # memory: 50Mi
-
-# grpc support
-grpc: true
-
-# https termination by dex itself
-https: false
-
-# expose prometheus metrics ?
-telemetry: false
-
-ports:
-  web:
-    containerPort: 5556
-    # for service.type: NodePort
-    nodePort: 32000
-    servicePort: 32000
-# Relevant only when grpc support is enabled
-  grpc:
-    containerPort: 5000
-    # for service.type: NodePort
-    nodePort: 35000
-    servicePort: 35000
-  telemetry:
-    containerPort: 5558
-    # for service.type: NodePort
-    nodePort: 37000
-    servicePort: 37000
-
-livenessProbe:
-  enabled: true
-  initialDelaySeconds: 1
-  failureThreshold: 1
-  httpPath: "/healthz"
-  periodSeconds: 10
-  timeoutSeconds: 1
-
-readinessProbe:
-  enabled: true
-  initialDelaySeconds: 1
-  failureThreshold: 1
-  httpPath: "/healthz"
-  periodSeconds: 10
-  timeoutSeconds: 1
+image:
+  repository: dexidp/dex
+  tag: v2.28.0
+  pullPolicy: IfNotPresent
 
 service:
   type: ClusterIP
-  # Override IP for the Service Type: LoadBalancer.
-  # This feature depends on whether the underlying cloud-provider supports specifying the loadBalancerIP when a load balancer is created.
-  # loadBalancerIP: 127.0.0.1
-  annotations: {}
+  port: 5556
+
+  # For nodeport, specify the following:
+  #   type: NodePort
+  #   nodePort: <port-number>
+
+tls:
+  # Specify whether a TLS secret for Dex should be created
+  # The provided certificate and key values are used to populate the
+  # tlsCert and tlsKey values in the Dex configuration.
+  #
+  # If set to true, be sure to update the listen directive in the Dex
+  # configuration to use https.
+  create: false
+
+  # Provide values for certificate and key
+  # certificate: |-
+  #   -----BEGIN CERTIFICATE-----
+  #    ...
+  #    ----END CERTIFICATE-----
+  #
+  # key: |-
+  #   -----BEGIN RSA PRIVATE KEY-----
+  #   ...
+  #   -----END RSA PRIVATE KEY-----
 
 ingress:
   enabled: false
@@ -107,97 +46,15 @@ ingress:
     # kubernetes.io/tls-acme: "true"
   path: /
   hosts:
-    - dex.example.com
+    - dex.lan.quanby.nl
   tls: []
-  #  - secretName: dex-example-tls
+  #  - secretName: dex.lan.quanby.nl
   #    hosts:
-  #      - dex.example.com
-
-extraVolumes: []
-extraVolumeMounts: []
-
-certs:
-  securityContext:
-    enabled: true
-    runAsUser: 65534
-    fsGroup: 65534
-  image: gcr.io/google_containers/kubernetes-dashboard-init-amd64
-  imageTag: "v1.0.0"
-  imagePullPolicy: "IfNotPresent"
-  # Section below is relevant only when https termination is enabled
-  web:
-    create: true
-    activeDeadlineSeconds: 300
-    caDays: 10000
-    certDays: 10000
-    altNames:
-      - dex.example.com
-    altIPs: {}
-    secret:
-      tlsName: dex-web-server-tls
-      caName: dex-web-server-ca
-    pod:
-      annotations: {}
-      nodeSelector: {}
-      tolerations: []
-        # - key: CriticalAddonsOnly
-        #   operator: Exists
-        # - key: foo
-        #   operator: Equal
-        #   value: bar
-        #   effect: NoSchedule
-      affinity: {}
-        # podAntiAffinity:
-        #   preferredDuringSchedulingIgnoredDuringExecution:
-        #   - weight: 5
-        #     podAffinityTerm:
-        #       topologyKey: "kubernetes.io/hostname"
-        #       labelSelector:
-        #         matchLabels:
-        #           app: {{ template "dex.name" . }}
-        #           release: "{{ .Release.Name }}"
-  # Section below is relevant only when grpc support is enabled
-  grpc:
-    create: true
-    activeDeadlineSeconds: 300
-    altNames:
-      - dex.example.com
-    altIPs: {}
-    secret:
-      serverTlsName: dex-grpc-server-tls
-      clientTlsName: dex-grpc-client-tls
-      caName: dex-grpc-ca
-    pod:
-      annotations: {}
-      nodeSelector: {}
-      tolerations: []
-        # - key: CriticalAddonsOnly
-        #   operator: Exists
-        # - key: foo
-        #   operator: Equal
-        #   value: bar
-        #   effect: NoSchedule
-      affinity: {}
-        # podAntiAffinity:
-        #   preferredDuringSchedulingIgnoredDuringExecution:
-        #   - weight: 5
-        #     podAffinityTerm:
-        #       topologyKey: "kubernetes.io/hostname"
-        #       labelSelector:
-        #         matchLabels:
-        #           app: {{ template "dex.name" . }}
-        #           release: "{{ .Release.Name }}"
-
-env: []
+  #      - dex.lan.quanby.nl
 
 rbac:
   # Specifies whether RBAC resources should be created
   create: true
-
-crd:
-  # Specifies whether dex's CRDs are already present (if not cluster role and cluster role binding will be created
-  # to enable dex to create them). Depends on rbac.create
-  present: false
 
 serviceAccount:
   # Specifies whether a ServiceAccount should be created
@@ -206,72 +63,183 @@ serviceAccount:
   # If not set and create is true, a name is generated using the fullname template
   name:
 
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #  cpu: 100m
+  #  memory: 50Mi
+  # requests:
+  #  cpu: 100m
+  #  memory: 50Mi
+
+nodeSelector: {}
+
+tolerations: []
+
 affinity: {}
-  # podAntiAffinity:
-  #   preferredDuringSchedulingIgnoredDuringExecution:
-  #   - weight: 5
-  #     podAffinityTerm:
-  #       topologyKey: "kubernetes.io/hostname"
-  #       labelSelector:
-  #         matchLabels:
-  #           app: {{ template "dex.name" . }}
-  #           release: "{{ .Release.Name }}"
 
-podDisruptionBudget: {}
-  # maxUnavailable: 1
 
-config:
-  issuer: http://dex.example.com:8080
+# Configuration file for Dex
+# Certainly secret fields can use environment variables
+#
+config: |-
+  issuer: https://dex.lan.quanby.nl
+
   storage:
     type: kubernetes
     config:
       inCluster: true
+
+  web:
+    http: 0.0.0.0:5556
+
+    # If enabled, be sure to configure tls settings above, or use a tool
+    # such as let-encrypt to manage the certs.
+    # Currently this chart does not support both http and https, and the port
+    # is fixed to 5556
+    #
+    # https: 0.0.0.0:5556
+    # tlsCert: /etc/dex/tls/tls.crt
+    # tlsKey: /etc/dex/tls/tls.key
+
+  frontend:
+    theme: "coreos"
+    issuer: "Example Co"
+    issuerUrl: "https://lan.quanby.nl"
+    logoUrl: https://lan.quanby.nl/images/logo-250x25.png
+
+  expiry:
+    signingKeys: "6h"
+    idTokens: "24h"
+
   logger:
     level: debug
-  web:
-    # port is taken from ports section above
-    address: 0.0.0.0
-    tlsCert: /etc/dex/tls/https/server/tls.crt
-    tlsKey: /etc/dex/tls/https/server/tls.key
-    allowedOrigins: []
-# Section below is relevant only when grpc support is enabled
-  grpc:
-    # port is taken from ports section above
-    address: 127.0.0.1
-    tlsCert: /etc/dex/tls/grpc/server/tls.crt
-    tlsKey: /etc/dex/tls/grpc/server/tls.key
-    tlsClientCA: /etc/dex/tls/grpc/ca/tls.crt
-  connectors: []
-#  - type: github
-#    id: github
-#    name: GitHub
-#    config:
-#      clientID: xxxxxxxxxxxxxxx
-#      clientSecret: yyyyyyyyyyyyyyyyyyyyy
-#      redirectURI: https://dex.minikube.local:5556/callback
-#      org: kubernetes
+    format: json
+
   oauth2:
-    alwaysShowLoginScreen: false
+    responseTypes: ["code", "token", "id_token"]
     skipApprovalScreen: true
 
-#  expiry:
-#    signingKeys: "6h"
-#    idTokens: "24h"
+  # Remember you can have multiple connectors of the same 'type' (with different 'id's)
+  # If you need e.g. logins with groups for two different Microsoft 'tenants'
+  connectors:
 
-#  staticClients:
-#  - id: example-app
-#    redirectURIs:
-#    - 'http://192.168.42.219:31850/oauth2/callback'
-#    name: 'Example App'
-#    secret: ZXhhbXBsZS1hcHAtc2VjcmV0
+  # GitHub configure 'OAuth Apps' -> 'New OAuth App', add callback URL
+  # https://github.com/settings/developers
+  - type: github
+    id: github
+    name: GitHub
+    config:
+      clientID: $GITHUB_CLIENT_ID
+      clientSecret: $GITHUB_CLIENT_SECRET
+      redirectURI: https://dex.lan.quanby.nl/callback
+      # 'orgs' can be used to map groups from Github
+      # https://github.com/coreos/dex/blob/master/Documentation/connectors/github.md
+      #orgs:
+      #- name: foo
+      #  teams:
+      #  - team-red
+      #  - team-blue
+      #- name: bar
+
+  # Google APIs account, 'Create Credentials' -> 'OAuth Client ID', add callback URL
+  # https://console.developers.google.com/apis/credentials
+  - type: oidc
+    id: google
+    name: Google
+    config:
+      issuer: https://accounts.google.com
+      clientID: $GOOGLE_CLIENT_ID
+      clientSecret: $GOOGLE_CLIENT_SECRET
+      redirectURI: https://dex.lan.quanby.nl/callback
+      # Google supports whitelisting allowed domains when using G Suite
+      # (Google Apps). The following field can be set to a list of domains
+      # that can log in:
+      # hostedDomains:
+      #  - lan.quanby.nl
+      #  - other.lan.quanby.nl
+
+  # Microsoft App Dev account, 'Add an app'
+  # 'Application Secrets' -> 'Generate new password'
+  # 'Platforms' -> 'Add Platform' -> 'Web', add the callback URL
+  # https://apps.dev.microsoft.com/
+  - type: microsoft
+    id: microsoft
+    name: Microsoft
+    config:
+      clientID: $MICROSOFT_APPLICATION_ID
+      clientSecret: $MICROSOFT_CLIENT_SECRET
+      redirectURI: https://dex.lan.quanby.nl/callback
+      # Restrict access to one tenant
+      # tenant: <tenant name> or <tenant uuid>
+      # Restrict access to certain groups
+      # groups:
+      # - group-red
+      # - group-blue
+
+  # These may not match the schema used by your LDAP server
+  # https://github.com/coreos/dex/blob/master/Documentation/connectors/ldap.md
+  - type: ldap
+    id: ldap
+    name: "LDAP"
+    config:
+      host: ldap.lan.quanby.nl:389
+      startTLS: true
+      bindDN: "cn=serviceAccount,dc=example,dc=com"
+      bindPW: $LDAP_BINDPW
+      usernamePrompt: "Username"
+      userSearch:
+        # Query should be "(&(objectClass=inetorgperson)(cn=<username>))"
+        baseDN: "ou=Users,dc=example,dc=com"
+        filter: "(objectClass=inetorgperson)"
+        username: cn
+        # DN must be in capitals
+        idAttr: DN
+        emailAttr: mail
+        nameAttr: displayName
+      groupSearch:
+        # Query should be "(&(objectClass=groupOfUniqueNames)(uniqueMember=<userAttr>))"
+        baseDN: "ou=Groups,dc=example,dc=com"
+        filter: "(objectClass=groupOfUniqueNames)"
+        # DN must be in capitals
+        userAttr: DN
+        groupAttr: uniqueMember
+        nameAttr: cn
+
+  # The 'name' must match the k8s API server's 'oidc-client-id'
+  staticClients:
+  - id: my-cluster
+    name: "my-cluster"
+    secret: "pUBnBOY80SnXgjibTYM9ZWNzY2xreNGQok"
+    redirectURIs:
+    - https://login.lan.quanby.nl/callback/my-cluster
+
+  enablePasswordDB: True
+  staticPasswords:
+  - email: "admin@lan.quanby.nl"
+    # bcrypt hash of the string "password"
+    hash: "$2a$10$2b2cU8CPhOTaGrs1HRQuAueS7JTT5ZHsHSzYiFPm1leZck7Mc8T4W"
+    username: "admin"
+    userID: "08a8684b-db88-4b73-90a9-3cd1661f5466"
+
+
+# You should not enter your secrets here if this file will be stored in source control
+# Instead create a separate file to hold or override these values
+# You need only list the environment variables you used in the 'config' above
+# You can add any additional ones you need, or remove ones you don't need
 #
-  enablePasswordDB: true
-#  staticPasswords:
-#   - email: "admin@example.com"
-#     # bcrypt hash of the string "password"
-#     hash: "$2a$10$2b2cU8CPhOTaGrs1HRQuAueS7JTT5ZHsHSzYiFPm1leZck7Mc8T4W"
-#     username: "admin"
-#     userID: "08a8684b-db88-4b73-90a9-3cd1661f5466"
-
-# frontend:
-#   logoURL: https://example.com/yourlogo.png
+envSecrets:
+  # GitHub
+  GITHUB_CLIENT_ID: "override-me"
+  GITHUB_CLIENT_SECRET: "override-me"
+  # Google (oidc)
+  GOOGLE_CLIENT_ID: "override-me"
+  GOOGLE_CLIENT_SECRET: "override-me"
+  # Microsoft
+  MICROSOFT_APPLICATION_ID: "override-me"
+  MICROSOFT_CLIENT_SECRET: "override-me"
+  # LDAP
+  LDAP_BINDPW: "override-me"

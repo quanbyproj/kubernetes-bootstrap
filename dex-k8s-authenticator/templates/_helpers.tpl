@@ -2,7 +2,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "dex.name" -}}
+{{- define "dex-k8s-authenticator.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
@@ -11,7 +11,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "dex.fullname" -}}
+{{- define "dex-k8s-authenticator.fullname" -}}
 {{- if .Values.fullnameOverride -}}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
@@ -27,30 +27,8 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "dex.chart" -}}
+{{- define "dex-k8s-authenticator.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
-{{- end -}}
-
-{{/*
-Create the name of the service account to use
-*/}}
-{{- define "dex.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create -}}
-    {{ default (include "dex.fullname" .) .Values.serviceAccount.name }}
-{{- else -}}
-    {{ default "default" .Values.serviceAccount.name }}
-{{- end -}}
-{{- end -}}
-
-{{/*
-Create the health check path
-*/}}
-
-{{/*
-Create secret key from environment variables
-*/}}
-{{- define "dex.envkey" -}}
-{{ . | replace "_" "-" | lower }}
 {{- end -}}
 
 {{/*
@@ -59,18 +37,23 @@ Create the healthCheckPath for readiness and liveness probes.
 Based on the following template values:
     - healthCheckPath
     - ingress.path
+    - dexK8sAuthenticator.web_path_prefix
 
 The default is '/healthz'
 */}}
 
-{{- define "dex.healthCheckPath" -}}
+{{- define "dex-k8s-authenticator.healthCheckPath" -}}
 {{- if .Values.healthCheckPath -}}
   {{ .Values.healthCheckPath }}
 {{- else -}}
   {{- if .Values.ingress.enabled -}}
     {{ default "" .Values.ingress.path | trimSuffix "/" }}/healthz
   {{- else -}}
-    {{ default "/healthz" }}
+    {{- if .Values.dexK8sAuthenticator.web_path_prefix -}}
+      {{ .Values.dexK8sAuthenticator.web_path_prefix | trimSuffix "/" }}/healthz
+    {{- else -}}
+      {{ "/healthz" }}
+    {{- end -}}
   {{- end -}}
 {{- end -}}
 {{- end -}}

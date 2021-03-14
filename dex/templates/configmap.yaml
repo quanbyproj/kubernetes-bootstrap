@@ -1,12 +1,13 @@
-{{- if .Values.serviceAccount.create }}
 apiVersion: v1
-kind: ServiceAccount
+kind: ConfigMap
 metadata:
-  name: {{ template "dex.serviceAccountName" . }}
+  name: {{ template "dex.fullname" . }}
   labels:
     app: {{ template "dex.fullname" . }}
     env: {{ default "dev" .Values.global.deployEnv }}
-    chart: {{ template "dex.chart" . }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
     release: "{{ .Release.Name }}"
     heritage: "{{ .Release.Service }}"
-{{- end }}
+data:
+  config.yaml: |-
+{{ .Values.config | indent 4 }}

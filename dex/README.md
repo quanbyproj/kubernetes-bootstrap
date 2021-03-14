@@ -1,134 +1,257 @@
-# ⚠️ Repo Archive Notice
+# Helm Chart for deploying dex
 
-As of Nov 13, 2020, charts in this repo will no longer be updated.
-For more information, see the Helm Charts [Deprecation and Archive Notice](https://github.com/helm/charts#%EF%B8%8F-deprecation-and-archive-notice), and [Update](https://helm.sh/blog/charts-repo-deprecation/).
+This chart installs `dex` in a Kubernetes cluster. You can use this deployment for one cluster
+or for any number of cluster you configure under `staticClients` in the configuration.
 
-# dex
+You also need to configure each Kubernetes cluster to use `dex` by [setting the OIDC parameters
+for the Kubernetes API server](https://kubernetes.io/docs/admin/authentication/#openid-connect-tokens).
+This is easy using [`kube-aws` installer](https://github.com/kubernetes-incubator/kube-aws/tree/master/contrib/dex).
 
-[Dex][dex] is an identity service that uses OpenID Connect to drive authentication for other apps.
+If you want an easy way to issue and install `kubectl` credentials, then you should also
+install [`dex-k8s-authenticator`](https://github.com/mintel/dex-k8s-authenticator). There
+is a `helm` chart available for that too (in its repo).
 
-## DEPRECATION NOTICE
 
-This chart is deprecated and no longer supported.
+```yaml
+# Default values for dex
 
-## Introduction
+# Deploy environment label, e.g. dev, test, prod
+global:
+  deployEnv: dev
 
-Dex acts as a portal to other identity providers through "connectors". This lets dex defer authentication to LDAP servers, SAML providers, or established identity providers like GitHub, Google, and Active Directory. Clients write their authentication logic once to talk to dex, then dex handles the protocols for a given backend.
+replicaCount: 1
 
-**Kubernetes authentication note**
+image:
+  repository: quay.io/coreos/dex
+  tag: v2.10.0
+  pullPolicy: IfNotPresent
 
-If you plan to use dex as a [Kubernetes OpenID Connect token authenticator plugin](http://kubernetes.io/docs/admin/authentication/#openid-connect-tokens) you'll need to additionally deploy some helper app which will provide authentication UI for users and talk to dex.
+service:
+  type: ClusterIP
+  port: 5556
 
-Several helper apps are listed below:
-  - https://github.com/mintel/dex-k8s-authenticator
-  - https://github.com/heptiolabs/gangway
-  - https://github.com/micahhausler/k8s-oidc-helper
-  - https://github.com/negz/kuberos
-  - https://github.com/negz/kubehook
-  - https://github.com/fydrah/loginapp
-  - https://github.com/keycloak/keycloak
+tls:
+  # Specify whether a TLS secret for Dex should be created
+  # The provided certificate and key values are used to populate the
+  # tlsCert and tlsKey values in the Dex configuration.
+  #
+  # If set to true, be sure to update the listen directive in the Dex
+  # configuration to use https.
+  create: false
 
-## Installing the Chart
+  # Provide values for certificate and key
+  # certificate: |-
+  #   -----BEGIN CERTIFICATE-----
+  #    ...
+  #    ----END CERTIFICATE-----
+  #
+  # key: |-
+  #   -----BEGIN RSA PRIVATE KEY-----
+  #   ...
+  #   -----END RSA PRIVATE KEY-----
 
-To install the chart with the release name `my-release`:
+ingress:
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  path: /
+  hosts:
+    - dex.lan.quanby.nl
+  tls: []
+  #  - secretName: dex.lan.quanby.nl
+  #    hosts:
+  #      - dex.lan.quanby.nl
 
-```sh
-$ helm install --name my-release stable/dex
+rbac:
+  # Specifies whether RBAC resources should be created
+  create: true
+
+serviceAccount:
+  # Specifies whether a ServiceAccount should be created
+  create: true
+  # The name of the ServiceAccount to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #  cpu: 100m
+  #  memory: 50Mi
+  # requests:
+  #  cpu: 100m
+  #  memory: 50Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+
+# Configuration file for Dex
+# Certainly secret fields can use environment variables
+#
+config: |-
+  issuer: https://dex.lan.quanby.nl
+
+  storage:
+    type: kubernetes
+    config:
+      inCluster: true
+
+  web:
+    http: 0.0.0.0:5556
+
+    # If enabled, be sure to configure tls settings above, or use a tool
+    # such as let-encrypt to manage the certs.
+    # Currently this chart does not support both http and https, and the port
+    # is fixed to 5556
+    #
+    # https: 0.0.0.0:5556
+    # tlsCert: /etc/dex/tls/tls.crt
+    # tlsKey: /etc/dex/tls/tls.key
+
+  frontend:
+    theme: "coreos"
+    issuer: "Example Co"
+    issuerUrl: "https://lan.quanby.nl"
+    logoUrl: https://lan.quanby.nl/images/logo-250x25.png
+
+  expiry:
+    signingKeys: "6h"
+    idTokens: "24h"
+
+  logger:
+    level: debug
+    format: json
+
+  oauth2:
+    responseTypes: ["code", "token", "id_token"]
+    skipApprovalScreen: true
+
+  # Remember you can have multiple connectors of the same 'type' (with different 'id's)
+  # If you need e.g. logins with groups for two different Microsoft 'tenants'
+  connectors:
+
+  # GitHub configure 'OAuth Apps' -> 'New OAuth App', add callback URL
+  # https://github.com/settings/developers
+  - type: github
+    id: github
+    name: GitHub
+    config:
+      clientID: $GITHUB_CLIENT_ID
+      clientSecret: $GITHUB_CLIENT_SECRET
+      redirectURI: https://dex.lan.quanby.nl/callback
+      # 'orgs' can be used to map groups from Github
+      # https://github.com/coreos/dex/blob/master/Documentation/connectors/github.md
+      #orgs:
+      #- name: foo
+      #  teams:
+      #  - team-red
+      #  - team-blue
+      #- name: bar
+
+  # Google APIs account, 'Create Credentials' -> 'OAuth Client ID', add callback URL
+  # https://console.developers.google.com/apis/credentials
+  - type: oidc
+    id: google
+    name: Google
+    config:
+      issuer: https://accounts.google.com
+      clientID: $GOOGLE_CLIENT_ID
+      clientSecret: $GOOGLE_CLIENT_SECRET
+      redirectURI: https://dex.lan.quanby.nl/callback
+      # Google supports whitelisting allowed domains when using G Suite
+      # (Google Apps). The following field can be set to a list of domains
+      # that can log in:
+      # hostedDomains:
+      #  - lan.quanby.nl
+      #  - other.lan.quanby.nl
+
+  # Microsoft App Dev account, 'Add an app'
+  # 'Application Secrets' -> 'Generate new password'
+  # 'Platforms' -> 'Add Platform' -> 'Web', add the callback URL
+  # https://apps.dev.microsoft.com/
+  - type: microsoft
+    id: microsoft
+    name: Microsoft
+    config:
+      clientID: $MICROSOFT_APPLICATION_ID
+      clientSecret: $MICROSOFT_CLIENT_SECRET
+      redirectURI: https://dex.lan.quanby.nl/callback
+      # Restrict access to one tenant
+      # tenant: <tenant name> or <tenant uuid>
+      # Restrict access to certain groups
+      # groups:
+      # - group-red
+      # - group-blue
+
+  # These may not match the schema used by your LDAP server
+  # https://github.com/coreos/dex/blob/master/Documentation/connectors/ldap.md
+  - type: ldap
+    id: ldap
+    name: "LDAP"
+    config:
+      host: ldap.lan.quanby.nl:389
+      startTLS: true
+      bindDN: "cn=serviceAccount,dc=example,dc=com"
+      bindPW: $LDAP_BINDPW
+      usernamePrompt: "Username"
+      userSearch:
+        # Query should be "(&(objectClass=inetorgperson)(cn=<username>))"
+        baseDN: "ou=Users,dc=example,dc=com"
+        filter: "(objectClass=inetorgperson)"
+        username: cn
+        # DN must be in capitals
+        idAttr: DN
+        emailAttr: mail
+        nameAttr: displayName
+      groupSearch:
+        # Query should be "(&(objectClass=groupOfUniqueNames)(uniqueMember=<userAttr>))"
+        baseDN: "ou=Groups,dc=example,dc=com"
+        filter: "(objectClass=groupOfUniqueNames)"
+        # DN must be in capitals
+        userAttr: DN
+        groupAttr: uniqueMember
+        nameAttr: cn
+
+  # The 'name' must match the k8s API server's 'oidc-client-id'
+  staticClients:
+  - id: my-cluster
+    name: "my-cluster"
+    secret: "pUBnBOY80SnXgjibTYM9ZWNzY2xreNGQok"
+    redirectURIs:
+    - https://login.lan.quanby.nl/callback/my-cluster
+
+  enablePasswordDB: True
+  staticPasswords:
+  - email: "admin@lan.quanby.nl"
+    # bcrypt hash of the string "password"
+    hash: "$2a$10$2b2cU8CPhOTaGrs1HRQuAueS7JTT5ZHsHSzYiFPm1leZck7Mc8T4W"
+    username: "admin"
+    userID: "08a8684b-db88-4b73-90a9-3cd1661f5466"  
+
+
+# You should not enter your secrets here if this file will be stored in source control
+# Instead create a separate file to hold or override these values
+# You need only list the environment variables you used in the 'config' above
+# You can add any additional ones you need, or remove ones you don't need
+#
+envSecrets:
+  # GitHub
+  GITHUB_CLIENT_ID: "override-me"
+  GITHUB_CLIENT_SECRET: "override-me"
+  # Google (oidc)
+  GOOGLE_CLIENT_ID: "override-me"
+  GOOGLE_CLIENT_SECRET: "override-me"
+  # Microsoft
+  MICROSOFT_APPLICATION_ID: "override-me"
+  MICROSOFT_CLIENT_SECRET: "override-me"
+  # LDAP
+  LDAP_BINDPW: "override-me"
 ```
-
-It'll install the chart with the default parameters. However most probably it won't work for you as-is, thus before installing the chart you need to consult the [values.yaml](values.yaml) notes as well as [dex documentation][dex].
-
-## Uninstalling the Chart
-
-To uninstall/delete the `my-release` deployment:
-
-```sh
-$ helm delete --purge my-release
-```
-
-The command removes all the Kubernetes components associated with the chart and deletes the release.
-
-## Upgrading an existing release to a new major version
-
-A major chart version change (like v1.5.1 -> v2.0.0) indicates that there is an incompatible breaking change which requires manual actions.
-
-### Upgrade to v2.0.0
-
-Breaking changes which should be considered and require manual actions during release upgrade:
-
-- ability to switch grpc and https on and off via dedicated chart parameters
-- port definition for Pod, Service and dex config re-written from scratch
-- dex config is _not_ taken from `.Values.config` as-is anymore, pay attention!
-
-See the [Configuration](#configuration) section for the details on the parameters introduced in version 2.0.0.
-
-Moreover, this release updates all the labels to the new [recommended labels](https://github.com/helm/charts/blob/master/REVIEW_GUIDELINES.md#names-and-labels), most of them being immutable.
-
-In order to upgrade, please update your values file and uninstall/reinstall the chart.
-
-## Configuration
-
-Parameters introduced starting from v2
-
-| Parameter | Description | Default |
-| --------- | ----------- | ------- |
-| `certs.grpc.pod.annotations` | Annotations for the pod created by the `grpc-certs` job | `{}` |
-| `certs.grpc.pod.affinity` | Affinity for the pod created by the `grpc-certs` job | `{}` |
-| `certs.grpc.pod.nodeSelector` | nodeSelector for the pod created by the `grpc-certs` job | `{}` |
-| `certs.grpc.pod.tolerations` | Tolerations for the pod created by the `grpc-certs` job | `[]` |
-| `certs.web.pod.annotations` | Annotations for the pod created by the `web-certs` job | `{}` |
-| `certs.web.pod.affinity` | Affinity for the pod created by the `web-certs` job | `{}` |
-| `certs.web.pod.nodeSelector` | nodeSelector for the pod created by the `web-certs` job | `{}` |
-| `certs.web.pod.tolerations` | Tolerations for the pod created by the `web-certs` job | `[]` |
-| `config.connectors` | Maps to the dex config `connectors` dict param | `{}` |
-| `config.enablePasswordDB` | Maps to the dex config `enablePasswordDB` param | `true` |
-| `config.frontend` | Maps to the dex config `frontend` dict param | `""` |
-| `config.grpc.address` | dex grpc listen address | `127.0.0.1` |
-| `config.grpc.tlsCert` | Maps to the dex config `grpc.tlsCert` param | `/etc/dex/tls/grpc/server/tls.crt` |
-| `config.grpc.tlsClientCA` | Maps to the dex config `grpc.tlsClientCA` param | `/etc/dex/tls/grpc/ca/tls.crt` |
-| `config.grpc.tlsKey` | Maps to the dex config `grpc.tlsKey` param | `/etc/dex/tls/grpc/server/tls.key` |
-| `config.issuer` | Maps to the dex config `issuer` param | `http://dex.io:8080` |
-| `config.logger` | Maps to the dex config `logger` dict param | `{"level": "debug"}` |
-| `config.oauth2.alwaysShowLoginScreen` | Maps to the dex config `oauth2.alwaysShowLoginScreen` param | `false` |
-| `config.oauth2.skipApprovalScreen` | Maps to the dex config `oauth2.skipApprovalScreen` param | `true` |
-| `config.staticClients` | Maps to the dex config `staticClients` list param | `""` |
-| `config.staticPasswords` | Maps to the dex config `staticPasswords` list param | `""` |
-| `config.storage` | Maps to the dex config `storage` dict param | `{"type": "kubernetes", "config": {"inCluster": true}}` |
-| `config.web.address` | dex http/https listen address | `0.0.0.0` |
-| `config.web.tlsCert` | Maps to the dex config `web.tlsCert` param | `/etc/dex/tls/https/server/tls.crt` |
-| `config.web.tlsKey` | Maps to the dex config `web.tlsKey` param | `/etc/dex/tls/https/server/tls.key` |
-| `config.web.allowedOrigins` | Maps to the dex config `web.allowedOrigins` param | `[]` |
-| `config.expiry.signingKeys` | Maps to the dex config `expiry.signingKeys` param | `6h` |
-| `config.expiry.idTokens` | Maps to the dex config `expiry.idTokens` param | `24h` |
-| `crd.present` | Whether dex's CRDs are already present (if not cluster role and cluster role binding will be created to enable dex to create them). Depends on `rbac.create` | `false` |
-| `grpc` | Enable dex grpc endpoint | `true` |
-| `https` | Enable TLS termination for the dex http endpoint | `false` |
-| `podLabels` | Custom pod labels | `{}` |
-| `ports.grpc.containerPort` | grpc port listened by the dex | `5000` |
-| `ports.grpc.nodePort` | K8S Service node port for the dex grpc listener | `35000` |
-| `ports.grpc.servicePort` | K8S Service port for the dex grpc listener | `35000` |
-| `ports.web.containerPort` | http/https port listened by the dex | `5556` |
-| `ports.web.nodePort` | K8S Service node port for the dex http/https listener | `32000` |
-| `ports.web.servicePort` | K8S Service port for the dex http/https listener | `32000` |
-| `rbac.create` | If `true`, create & use RBAC resources | `true` |
-| `securityContext` | Allow setting the securityContext of the main dex deployment | `` |
-| `service.loadBalancerIP` | IP override for K8S LoadBalancer Service | `""` |
-| `livenessProbe.enabled` | k8s liveness probe enabled (cannot be enabled when `https = true`) | `false` |
-| `livenessProbe.path` |  k8s liveness probe http path | `"/healthz"`  |
-| `livenessProbe.initialDelaySeconds` | Number of seconds after the container has started before liveness probe is initiated.  |  `1` |
-| `livenessProbe.periodSeconds` | How often (in seconds) to perform the probe | `10`  |
-| `livenessProbe.timeoutSeconds` | Number of seconds after which the probe times out | `1`  |
-| `livenessProbe.failureThreshold` | Times to perform probe before restarting the container | `3`  |
-| `readinessProbe.enabled` | k8s readiness probe enabled (cannot be enabled when `https = true`) | `false`  |
-| `readinessProbe.path` |  k8s readiness probe http path | `"/healthz"`  |
-| `readinessProbe.initialDelaySeconds` | Number of seconds after the container has started before readiness probe is initiated.  |  `1` |
-| `readinessProbe.periodSeconds` | How often (in seconds) to perform the probe  |  `10` |
-| `readinessProbe.timeoutSeconds` | Number of seconds after which the probe times out | `1`  |
-| `readinessProbe.failureThreshold` | Times to perform probe before marking the container `Unready` |  `3` |
-| `imagePullSecrets` | Allows to run containers based on images in private registries. |  `{}` |
-
-
-Check [values.yaml](values.yaml) notes together with [dex documentation][dex] and [config examples](https://github.com/dexidp/dex/tree/master/examples) for all the possible configuration options.
-
-
-[dex]: https://github.com/dexidp/dex
